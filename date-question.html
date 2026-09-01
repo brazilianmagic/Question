@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>A Question</title>
+<style>
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    touch-action: manipulation;
+  }
+  #container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+  }
+  #question {
+    font-size: 1.8em;
+    font-weight: 700;
+    color: #4a2c3a;
+    margin-bottom: 40px;
+    max-width: 90%;
+    line-height: 1.3;
+    text-shadow: 0 2px 8px rgba(255,255,255,0.5);
+  }
+  .btn {
+    padding: 18px 40px;
+    font-size: 1.2em;
+    font-weight: 600;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    margin: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    transition: transform 0.15s ease;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  #yesBtn {
+    background: #4caf50;
+    color: white;
+  }
+  #yesBtn:active {
+    transform: scale(0.95);
+  }
+  #noBtn {
+    background: #f44336;
+    color: white;
+    position: fixed;
+    z-index: 10;
+  }
+  #result {
+    font-size: 1.4em;
+    font-weight: 700;
+    color: #2e7d32;
+    margin-top: 30px;
+    max-width: 90%;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  #result.show {
+    opacity: 1;
+  }
+  .hidden {
+    display: none !important;
+  }
+</style>
+</head>
+<body>
+<div id="container">
+  <div id="question">Are we going on a date this week? 💜</div>
+  <div id="buttonRow" style="display:flex; align-items:center; justify-content:center; flex-wrap:wrap;">
+    <button id="yesBtn" class="btn">Yes 😊</button>
+    <button id="noBtn" class="btn">No</button>
+  </div>
+  <div id="result"></div>
+</div>
+
+<script>
+  const noBtn = document.getElementById('noBtn');
+  const yesBtn = document.getElementById('yesBtn');
+  const result = document.getElementById('result');
+  const question = document.getElementById('question');
+
+  function moveNoButton() {
+    const btnRect = noBtn.getBoundingClientRect();
+    const margin = 10;
+    const maxX = window.innerWidth - btnRect.width - margin;
+    const maxY = window.innerHeight - btnRect.height - margin;
+
+    const newX = Math.max(margin, Math.random() * maxX);
+    const newY = Math.max(margin, Math.random() * maxY);
+
+    noBtn.style.left = newX + 'px';
+    noBtn.style.top = newY + 'px';
+  }
+
+  // Place it initially near the yes button, then dodge on any approach/interaction
+  function initPosition() {
+    const rect = yesBtn.getBoundingClientRect();
+    noBtn.style.position = 'fixed';
+    noBtn.style.left = (rect.right + 20) + 'px';
+    noBtn.style.top = rect.top + 'px';
+  }
+  window.addEventListener('load', initPosition);
+
+  // Dodge on hover (mouse) and on touchstart/pointerdown/pointermove near it (mobile)
+  noBtn.addEventListener('mouseenter', moveNoButton);
+  noBtn.addEventListener('pointerdown', function(e){
+    e.preventDefault();
+    moveNoButton();
+  });
+  noBtn.addEventListener('touchstart', function(e){
+    e.preventDefault();
+    moveNoButton();
+  }, {passive:false});
+
+  // Also dodge if a touch/pointer moves close to it, so it's hard to even land a tap
+  function distanceToBtn(x, y) {
+    const rect = noBtn.getBoundingClientRect();
+    const cx = rect.left + rect.width/2;
+    const cy = rect.top + rect.height/2;
+    return Math.hypot(x - cx, y - cy);
+  }
+
+  document.addEventListener('touchmove', function(e){
+    const t = e.touches[0];
+    if (!t) return;
+    if (distanceToBtn(t.clientX, t.clientY) < 90) {
+      moveNoButton();
+    }
+  }, {passive:true});
+
+  document.addEventListener('pointermove', function(e){
+    if (distanceToBtn(e.clientX, e.clientY) < 90) {
+      moveNoButton();
+    }
+  });
+
+  yesBtn.addEventListener('click', function() {
+    question.classList.add('hidden');
+    document.getElementById('buttonRow').classList.add('hidden');
+    result.textContent = "Yay! 🎉 Message me when you're free!";
+    result.classList.add('show');
+  });
+
+  // Reposition on resize/orientation change so it stays on screen
+  window.addEventListener('resize', function() {
+    initPosition();
+  });
+</script>
+</body>
+</html>
